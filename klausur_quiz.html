@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0f14">
+<title>Klausur Quiz – Fieber · Infektionen · Impfungen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f14;--surface:#13161e;--card:#1a1e2a;--border:#252a38;--accent:#7eb8f7;--accent2:#a78bfa;--gold:#f0c060;--green:#4ade80;--red:#f87171;--text:#e8eaf0;--muted:#6b7280}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom)}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(126,184,247,.07) 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 80%,rgba(167,139,250,.07) 0%,transparent 70%)}
+.wrap{position:relative;z-index:1;max-width:680px;margin:0 auto;padding:32px max(16px,env(safe-area-inset-right)) max(100px,calc(80px + env(safe-area-inset-bottom))) max(16px,env(safe-area-inset-left))}
+header{text-align:center;margin-bottom:36px}
+.tag{display:inline-block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border:1px solid rgba(126,184,247,.3);padding:4px 14px;border-radius:100px;margin-bottom:14px}
+h1{font-family:'Playfair Display',serif;font-size:clamp(26px,6vw,40px);line-height:1.15;margin-bottom:10px;background:linear-gradient(135deg,var(--text) 0%,var(--accent) 60%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{color:var(--muted);font-size:14px;font-weight:300}
+.progress-wrap{margin-bottom:24px}
+.progress-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:7px}
+.progress-bar-bg{height:4px;background:var(--border);border-radius:100px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease}
+.stats{display:flex;gap:8px;margin-bottom:20px}
+.stat-pill{flex:1;display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:12px}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.val{font-weight:500;font-size:17px;margin-left:auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 20px;position:relative;overflow:hidden;margin-bottom:12px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.5}
+.q-num{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;font-weight:500}
+.q-text{font-family:'Playfair Display',serif;font-size:clamp(17px,4vw,22px);line-height:1.5;margin-bottom:20px}
+
+/* ── ANSWER BUTTONS — the key piece ── */
+.options{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+.opt{
+  display:block;width:100%;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:12px;
+  padding:14px 16px;color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.5;
+  text-align:left;min-height:54px;
+  /* Every single iOS fix together */
+  cursor:pointer;
+  -webkit-appearance:none;
+  appearance:none;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  outline:none;
+  transition:border-color .15s,background .15s,opacity .1s;
+}
+.opt:active{opacity:.75}
+.opt.correct{border-color:var(--green)!important;background:rgba(74,222,128,.12)!important;color:var(--green)!important}
+.opt.wrong{border-color:var(--red)!important;background:rgba(248,113,113,.12)!important;color:var(--red)!important}
+.opt.reveal{border-color:rgba(126,184,247,.5)!important;background:rgba(126,184,247,.07)!important}
+.opt-letter{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;background:var(--border);font-size:12px;font-weight:600;margin-right:10px;flex-shrink:0;vertical-align:middle}
+
+.feedback{border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.7;margin-bottom:16px;border:1px solid transparent;display:none}
+.feedback.show{display:block}
+.feedback.good{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.25)}
+.feedback.bad{background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.25)}
+.fb-title{font-weight:600;margin-bottom:6px;font-size:15px}
+.feedback.good .fb-title{color:var(--green)}
+.feedback.bad  .fb-title{color:var(--red)}
+.fb-answer{margin-top:10px;padding:10px 12px;background:rgba(126,184,247,.06);border-radius:8px;font-size:13px;color:var(--accent);line-height:1.6;border-left:2px solid rgba(126,184,247,.4)}
+.fb-answer-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:4px}
+
+.conf-wrap{display:none;margin-bottom:14px}
+.conf-wrap.show{display:block}
+.conf-label{font-size:12px;color:var(--muted);margin-bottom:8px}
+.conf-btns{display:flex;gap:8px}
+.cbtn{flex:1;padding:12px 6px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:48px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;outline:none;transition:opacity .15s}
+.cbtn:active{opacity:.7}
+.cbtn.easy{border-color:rgba(74,222,128,.5);color:var(--green)}
+.cbtn.mid{border-color:rgba(240,192,96,.5);color:var(--gold)}
+.cbtn.hard{border-color:rgba(248,113,113,.5);color:var(--red)}
+
+.nav{display:flex;justify-content:flex-end;margin-top:6px}
+.btn{padding:12px 24px;border-radius:10px;border:none;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;min-height:46px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;outline:none;transition:opacity .15s}
+.btn:active{opacity:.75}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0d0f14;font-weight:700}
+
+#start-screen,#quiz-screen,#summary{display:none}
+.screen-active{display:block!important}
+
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}
+.mode-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;outline:none;transition:opacity .15s;display:block;width:100%}
+.mode-card:active{opacity:.75}
+.mode-card.sel{border-color:var(--accent);background:rgba(126,184,247,.07)}
+.mode-icon{font-size:24px;margin-bottom:7px}
+.mode-title{font-weight:500;font-size:14px;margin-bottom:2px;color:var(--text)}
+.mode-desc{font-size:11px;color:var(--muted)}
+.topic-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tbtn{padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;min-height:44px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;outline:none;transition:opacity .15s}
+.tbtn:active{opacity:.7}
+.tbtn.sel{border-color:var(--accent);background:rgba(126,184,247,.1);color:var(--accent)}
+.start-btn{width:100%;padding:16px;font-size:16px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#0d0f14;font-weight:700;border:none;border-radius:12px;min-height:54px;cursor:pointer;-webkit-appearance:none;appearance:none;touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0);-webkit-user-select:none;user-select:none;outline:none;transition:opacity .15s}
+.start-btn:active{opacity:.8}
+
+.sum-ring{width:130px;height:130px;margin:0 auto 22px;position:relative}
+.sum-ring svg{transform:rotate(-90deg)}
+.ring-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Playfair Display',serif}
+.ring-pct{font-size:32px;color:var(--text)}
+.ring-sub{font-size:11px;color:var(--muted)}
+.sum-title{font-family:'Playfair Display',serif;font-size:26px;text-align:center;margin-bottom:6px}
+.sum-msg{text-align:center;color:var(--muted);font-size:14px;margin-bottom:24px}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.sum-stat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.sum-stat .n{font-family:'Playfair Display',serif;font-size:30px}
+.sum-stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:3px}
+.sum-actions{display:flex;gap:10px;flex-wrap:wrap}
+.sum-actions .btn{flex:1;min-width:130px;text-align:center}
+
+.signature{position:fixed;bottom:max(12px,calc(12px + env(safe-area-inset-bottom)));right:max(12px,env(safe-area-inset-right));z-index:100;opacity:.8;pointer-events:none}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade{animation:fadeUp .3s ease both}
+
+@media(max-width:380px){
+  .conf-btns{flex-direction:column}
+  .card{padding:18px 14px}
+  .sum-actions{flex-direction:column}
+  .sum-actions .btn{min-width:unset}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="tag">Pflege · Klausurvorbereitung</div>
+  <h1>Fieber · Infektionen<br><em>Impfungen</em></h1>
+  <p class="subtitle">52 Fragen · 100% Offline · iPhone &amp; Android</p>
+</header>
+
+<!-- ── START ── -->
+<div id="start-screen">
+  <div class="card fade">
+    <div class="q-text" style="margin-bottom:6px">Wie möchtest du lernen?</div>
+    <div class="mode-grid">
+      <button class="mode-card sel" id="m-all" onclick="selMode('all')">
+        <div class="mode-icon">📚</div>
+        <div class="mode-title">Alle Fragen</div>
+        <div class="mode-desc">39 Fragen der Reihe nach</div>
+      </button>
+      <button class="mode-card" id="m-shuffle" onclick="selMode('shuffle')">
+        <div class="mode-icon">🔀</div>
+        <div class="mode-title">Zufällig</div>
+        <div class="mode-desc">Gemischte Reihenfolge</div>
+      </button>
+      <button class="mode-card" id="m-weak" onclick="selMode('weak')">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-title">Schwache Fragen</div>
+        <div class="mode-desc">Nur falsche Fragen</div>
+      </button>
+      <button class="mode-card" id="m-topic" onclick="selMode('topic')">
+        <div class="mode-icon">🧩</div>
+        <div class="mode-title">Nach Thema</div>
+        <div class="mode-desc">Einzelne Themen wählen</div>
+      </button>
+    </div>
+    <div id="topic-pick" style="display:none;margin-bottom:14px">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Thema wählen:</p>
+      <div class="topic-btns">
+        <button class="tbtn" id="t-fieber"    onclick="selTopic('fieber')">🌡️ Fieber</button>
+        <button class="tbtn" id="t-infektion" onclick="selTopic('infektion')">🦠 Infektionen</button>
+        <button class="tbtn" id="t-impfung"   onclick="selTopic('impfung')">💉 Impfungen</button>
+        <button class="tbtn" id="t-krampf"    onclick="selTopic('krampf')">⚡ Fieberkrampf</button>
+      </div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">Quiz starten →</button>
+  </div>
+</div>
+
+<!-- ── QUIZ ── -->
+<div id="quiz-screen">
+  <div class="progress-wrap fade">
+    <div class="progress-meta">
+      <span id="prog-txt">Frage 1 von 39</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog-bar" style="width:0%"></div></div>
+  </div>
+  <div class="stats fade">
+    <div class="stat-pill"><span class="dot" style="background:var(--green)"></span>Richtig<span class="val" id="sc">0</span></div>
+    <div class="stat-pill"><span class="dot" style="background:var(--red)"></span>Falsch<span class="val" id="sw">0</span></div>
+    <div class="stat-pill"><span class="dot" style="background:var(--gold)"></span>Streak<span class="val" id="ss">0🔥</span></div>
+  </div>
+  <div class="card" id="qcard">
+    <div class="q-num"  id="qnum">Frage 1</div>
+    <div class="q-text" id="qtxt">Lade...</div>
+    <div class="options" id="opts"></div>
+    <div class="feedback" id="fb">
+      <div class="fb-title" id="fbtitle"></div>
+      <div id="fbbody"></div>
+      <div class="fb-answer" id="fbanswer" style="display:none">
+        <div class="fb-answer-label">Richtige Antwort</div>
+        <div id="fbatxt"></div>
+      </div>
+    </div>
+    <div class="conf-wrap" id="confwrap">
+      <div class="conf-label">Wie sicher warst du?</div>
+      <div class="conf-btns">
+        <button class="cbtn easy" onclick="nxt('easy')">😊 Leicht</button>
+        <button class="cbtn mid"  onclick="nxt('mid')">🤔 Mittel</button>
+        <button class="cbtn hard" onclick="nxt('hard')">😰 Schwer</button>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="skip()">Überspringen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUMMARY ── -->
+<div id="summary">
+  <div class="card fade">
+    <div class="sum-ring">
+      <svg width="130" height="130" viewBox="0 0 130 130">
+        <circle cx="65" cy="65" r="54" fill="none" stroke="#252a38" stroke-width="9"/>
+        <circle cx="65" cy="65" r="54" fill="none" stroke="url(#sg)" stroke-width="9"
+          stroke-dasharray="339.3" stroke-dashoffset="339.3" id="ringc" stroke-linecap="round"/>
+        <defs><linearGradient id="sg" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#7eb8f7"/><stop offset="100%" stop-color="#a78bfa"/>
+        </linearGradient></defs>
+      </svg>
+      <div class="ring-text"><span class="ring-pct" id="rpct">0%</span><span class="ring-sub">Richtig</span></div>
+    </div>
+    <div class="sum-title" id="stitle">Gut gemacht!</div>
+    <div class="sum-msg"   id="smsg"></div>
+    <div class="sum-grid">
+      <div class="sum-stat"><div class="n" id="rc" style="color:var(--green)">0</div><div class="l">Richtig</div></div>
+      <div class="sum-stat"><div class="n" id="rw" style="color:var(--red)">0</div><div class="l">Falsch</div></div>
+      <div class="sum-stat"><div class="n" id="rt">0</div><div class="l">Gesamt</div></div>
+      <div class="sum-stat"><div class="n" id="rb" style="color:var(--gold)">0🔥</div><div class="l">Best Streak</div></div>
+    </div>
+    <div class="sum-actions">
+      <button class="btn btn-ghost"   onclick="rweak()">🎯 Schwache Fragen</button>
+      <button class="btn btn-primary" onclick="rall()">↩ Nochmal</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="signature">
+  <svg width="138" height="66" viewBox="0 0 138 66" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="sg2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f0c060"/><stop offset="50%" stop-color="#fde68a"/><stop offset="100%" stop-color="#c97d20"/></linearGradient>
+      <linearGradient id="sb2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#7eb8f7"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient>
+    </defs>
+    <rect x="1" y="1" width="136" height="64" rx="9" fill="#0e1220"/>
+    <rect x="1" y="1" width="136" height="64" rx="9" fill="none" stroke="url(#sg2)" stroke-width="1.2" opacity="0.75"/>
+    <line x1="14" y1="17" x2="124" y2="17" stroke="url(#sg2)" stroke-width="0.6" opacity="0.45"/>
+    <line x1="14" y1="49" x2="124" y2="49" stroke="url(#sg2)" stroke-width="0.6" opacity="0.45"/>
+    <polygon points="69,13 71.5,17 69,21 66.5,17" fill="url(#sg2)" opacity="0.75"/>
+    <polygon points="69,45 71.5,49 69,53 66.5,49" fill="url(#sg2)" opacity="0.75"/>
+    <text x="69" y="12" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="url(#sg2)" opacity="0.5" letter-spacing="2">MADE BY</text>
+    <text x="69" y="31" text-anchor="middle" font-family="Georgia,serif" font-size="11" font-weight="700" fill="url(#sg2)" letter-spacing="1">PARSA BAKHTIARI</text>
+    <text x="69" y="43" text-anchor="middle" font-family="Georgia,serif" font-size="9" fill="url(#sb2)" letter-spacing="3" opacity="0.9">KURS 23-4</text>
+    <circle cx="10" cy="33" r="1.5" fill="url(#sg2)" opacity="0.5"/>
+    <circle cx="128" cy="33" r="1.5" fill="url(#sg2)" opacity="0.5"/>
+  </svg>
+</div>
+
+<script>
+const QS=[
+  {id:1,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Was ist Fieber? (Definition)",a:"Sollwert im Hypothalamus ist ERHÖHT → Körper reguliert aktiv auf >38°C. Fieber ist KEINE eigenständige Krankheit, sondern eine Schutzreaktion des Körpers.",opts:["Sollwert im Hypothalamus erhöht → Körper reguliert aktiv → Temp. >38°C","Unkontrollierter Anstieg des IST-Wertes über 38°C","Entzündliche Erkrankung des Hypothalamus","Überhitzung durch äußere Einflüsse"],c:0},
+  {id:2,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Welche Temperatur gilt als 'Hohes Fieber'?",a:"Hohes Fieber = 39,1–39,9°C. Zur Erinnerung: Mäßig = 38,6–39,0°C | Sehr hoch = 40,0–42,0°C",opts:["38,1 – 38,5 °C","38,6 – 39,0 °C","39,1 – 39,9 °C","40,0 – 42,0 °C"],c:2},
+  {id:3,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Nenne die 4 Fieberarten.",a:"1) Infektiöses Fieber (Toxine) 2) Resorptionsfieber (nach OP) 3) Zentrales Fieber (Hirnschaden) 4) Toxisches Fieber (z.B. nach Impfung)",opts:["Infektiös, Resorptions-, Zentrales, Toxisches Fieber","Bakteriell, Viral, Pilz, Parasitär","Leicht, Mäßig, Hoch, Sehr hoch","Anstieg, Höhe, Abfall, Ruhephase"],c:0},
+  {id:4,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Pflegemaßnahmen in Phase 1 (Fieberanstieg)?",a:"Phase 1: Schüttelfrost, Haut blass & kalt → Fenster schließen, Decken anbieten, warme Getränke geben.",opts:["Fenster schließen, Decken anbieten, warme Getränke","Kühle Getränke, Wadenwickel, leichte Kleidung","Vitalzeichen beobachten, Flüssigkeitszufuhr","Antipyretika geben, Kleidung ausziehen"],c:0},
+  {id:5,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Unterschied: Lysis vs. Krisis?",a:"Lysis = LANGSAMER Fieberabfall → kreislaufschonend (günstig). Krisis = RASCHER Fieberabfall → kreislaufbelastend!",opts:["Lysis = langsam (günstig), Krisis = schnell (belastend)","Lysis = schnell (belastend), Krisis = langsam (günstig)","Beide bedeuten dasselbe","Lysis bei Kindern, Krisis bei Erwachsenen"],c:0},
+  {id:6,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Hauptunterschied: Fieber vs. Hyperthermie?",a:"Fieber: Sollwert ERHÖHT → Antipyretika wirken. Hyperthermie: Sollwert NORMAL, IST-Wert steigt unkontrolliert → NUR Kühlung von außen, KEINE Antipyretika!",opts:["Fieber = Sollwert erhöht (Antipyretika wirken); Hyperthermie = Sollwert normal (nur Kühlung)","Fieber ist immer gefährlicher als Hyperthermie","Beide gleich behandeln mit Antipyretika","Hyperthermie = Sollwert erhöht, Fieber nicht"],c:0},
+  {id:7,tp:"fieber",pt:"Fieber & Thermoregulation",q:"3 Formen der Hyperthermie?",a:"1) Hitzekollaps: Flüssigkeits-/Elektrolytverlust → hypovolämischer Schock. 2) Hitzeschlag: Wärmestau. 3) Sonnenstich: Bestrahlung auf Kopf/Nacken → Hirnhautschwellung.",opts:["Hitzekollaps, Hitzeschlag, Sonnenstich","Schüttelfrost, Fieberdelir, Fieberkrampf","Leichte, mittlere, schwere Hyperthermie","Konduktion, Konvektion, Evaporation"],c:0},
+  {id:8,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Wie wirken Antipyretika?",a:"Antipyretika hemmen Prostaglandine im Hypothalamus → Prostaglandine erhöhen Sollwert → werden geblockt → Sollwert sinkt → Fieber sinkt.",opts:["Hemmen Prostaglandine im Hypothalamus → Sollwert sinkt","Kühlen die Haut direkt von außen","Bekämpfen den Erreger direkt","Steigern die Schweißproduktion"],c:0},
+  {id:9,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Genaueste Messmethode & Kontraindikationen?",a:"Rektale Messung = genaueste Methode. KI: Hämorrhoiden, Blutungsneigung, rektale OP/Untersuchung, Ablehnung.",opts:["Rektal — KI: Hämorrhoiden, Blutungsneigung, rektale OP","Axillär — KI: Hauterkrankungen","Tympanal — KI: Ohrinfektionen","Sublingual — KI: Munderkrankungen"],c:0},
+  {id:10,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Ab wann ist Hypothermie lebensgefährlich?",a:"Hypothermie = Körperkern unter 35°C. Lebensgefahr ab unter 30°C! Maßnahmen: Decke, Wärmebett, warme Getränke/Infusion, Wärmelampe.",opts:["Unter 35°C Hypothermie, Lebensgefahr ab 30°C","Unter 36°C, sofort lebensgefährlich","Unter 33°C, Lebensgefahr ab 28°C","Unter 37°C, Lebensgefahr ab 32°C"],c:0},
+  {id:11,tp:"fieber",pt:"Fieber & Thermoregulation",q:"4 Mechanismen der Wärmeabgabe?",a:"1) Konvektion (an bewegte Luft) 2) Konduktion (an ruhende Stoffe) 3) Wärmestrahlung (Vasodilatation → gerötete Haut) 4) Evaporation (Schweiß → Verdunstungskälte)",opts:["Konvektion, Konduktion, Wärmestrahlung, Evaporation","Inhalation, Exhalation, Diurese, Defäkation","Vasokonstriktion, Vasodilatation, Zittern, Schwitzen","Metabolismus, Thermogenese, Thermolyse, Regulation"],c:0},
+  {id:12,tp:"fieber",pt:"Fieber & Thermoregulation",q:"3 Komplikationen von Fieber?",a:"1) Schüttelfrost: unwillkürliche Muskelkontraktionen. 2) Fieberkrampf: zu schneller Anstieg → Diazepam-Rektiole. 3) Fieberdelir: Wahrnehmungsstörungen bei hohem Dauerfieber.",opts:["Schüttelfrost, Fieberkrampf, Fieberdelir","Pneumonie, Sepsis, Meningitis","Hypotonie, Tachypnoe, Zyanose","Bewusstlosigkeit, Herzstillstand, Schock"],c:0},
+  {id:13,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Wann sind häufigere Temperaturmessungen nötig?",a:"Bei: Temp. >37,5°C, vor/nach OPs, Infektionskrankheiten/Antibiotika, Unterkühlung/Verbrennung, Früh- und Neugeborenen, kranken Säuglingen.",opts:["Infektionskrankheiten, vor/nach OPs, Früh-/Neugeborenen, Temp. >37,5°C","Nur bei Fieber über 39°C","Ausschließlich auf Intensivstation","Nur wenn Patient sich heiß fühlt"],c:0},
+  {id:14,tp:"infektion",pt:"Infektionskrankheiten",q:"Was ist eine Infektionskrankheit?",a:"Entsteht wenn Krankheitserreger in den Körper eindringen, sich vermehren und eine Erkrankung auslösen.",opts:["Eindringen von Erregern, Vermehrung und Auslösung einer Erkrankung","Autoimmunreaktion auf körpereigene Strukturen","Toxische Reaktion auf chemische Substanzen","Genetisch bedingte Immunstörung"],c:0},
+  {id:15,tp:"infektion",pt:"Infektionskrankheiten",q:"4 Erregerarten — je ein Beispiel?",a:"Bakterien (Tuberkulose) | Viren (COVID-19) — brauchen Wirtszelle | Pilze (Hautpilz) | Parasiten (Malaria) — auf Kosten des Wirtes.",opts:["Bakterien, Viren, Pilze, Parasiten","Viren, Bakterien, Toxine, Allergene","Prionen, Viroide, Plasmide, Phagen","Aerobe, Anaerobe, Grampos., Gramneg."],c:0},
+  {id:16,tp:"infektion",pt:"Infektionskrankheiten",q:"Alle 6 Glieder der Infektionskette?",a:"1) Erreger 2) Reservoir 3) Austrittspforte 4) Übertragungsweg 5) Eintrittspforte 6) Empfänglicher Wirt — alle 6 müssen vorhanden sein!",opts:["Erreger, Reservoir, Austrittspforte, Übertragungsweg, Eintrittspforte, Empfängl. Wirt","Erreger, Wirt, Umgebung, Zeit, Menge, Virulenz","Kontakt, Tröpfchen, Luft, Wasser, Nahrung, Vektor","Inkubation, Infektion, Symptom, Peak, Abklingen, Immunität"],c:0},
+  {id:17,tp:"infektion",pt:"Infektionskrankheiten",q:"Wichtigste Maßnahme zur Unterbrechung der Infektionskette?",a:"Händedesinfektion ist die WICHTIGSTE Maßnahme! Weitere: MNS, Isolation, Flächendesinfektion, Impfungen, Husten-/Niesetikette, Lebensmittelhygiene.",opts:["Händedesinfektion (wichtigste Maßnahme!)","Antibiotika-Gabe bei allen Patienten","Isolation aller Erkrankten","Vollschutzausrüstung tragen"],c:0},
+  {id:18,tp:"infektion",pt:"Infektionskrankheiten",q:"Was ist die Inkubationszeit?",a:"Inkubationszeit = Zeit zwischen Ansteckung und Ausbruch der Krankheit. Wichtig für: Isolation, Kontaktpersonen-Nachverfolgung, Meldepflicht.",opts:["Zeit zwischen Ansteckung und Ausbruch — wichtig für Isolation, Nachverfolgung, Meldepflicht","Zeit zwischen Symptombeginn und Genesung","Zeit in der Patient ansteckend ist","Dauer von Beginn bis Ende der Erkrankung"],c:0},
+  {id:19,tp:"infektion",pt:"Infektionskrankheiten",q:"Was ist Sepsis? Warnzeichen?",a:"Sepsis = lebensbedrohliche Organstörung durch Infektion. NOTFALL! Warnzeichen: Fieber oder Untertemperatur, Tachykardie, Tachypnoe, Hypotonie, Verwirrtheit.",opts:["Lebensbedrohliche Organstörung — Warnzeichen: Fieber/Untertemp., Tachykardie, Hypotonie, Verwirrtheit","Lokale Infektion mit Rötung/Schwellung","Chronische Entzündungsreaktion bei Immunsuppression","Allergische Reaktion auf Antibiotika"],c:0},
+  {id:20,tp:"infektion",pt:"Infektionskrankheiten",q:"Angeborenes vs. erworbenes Immunsystem?",a:"Angeboren: unspezifisch, erste Linie (Haut, Schleimhäute). Erworben: spezifisch, T- & B-Lymphozyten, Antikörper, immunologisches Gedächtnis.",opts:["Angeboren = unspezifisch/erste Linie; Erworben = spezifisch mit T-/B-Zellen und Gedächtnis","Angeboren = Antikörper, Erworben = Fresszellen","Angeboren = aktiv, Erworben = passiv","Kein Unterschied"],c:0},
+  {id:21,tp:"infektion",pt:"Infektionskrankheiten",q:"Funktion: B-Lymphozyten und T-Killerzellen?",a:"B-Lymphozyten: Antikörper bilden + Gedächtnis speichern. T-Killerzellen: virusinfizierte oder entartete Zellen direkt zerstören.",opts:["B-Lymphozyten = Antikörper & Gedächtnis; T-Killer = zerstören infizierte Zellen","B-Lymphozyten = Fresszellen; T-Killer = Antikörper","B-Lymphozyten = koordinieren; T-Killer = Histamin","Beide produzieren Antikörper"],c:0},
+  {id:22,tp:"infektion",pt:"Infektionskrankheiten",q:"Nenne 5 meldepflichtige Erkrankungen.",a:"Masern, Mumps, Röteln, Pertussis, Tetanus, Hepatitis A/B/C/E, Tuberkulose, COVID-19, Influenza, Skabies. Grundlage: IfSG.",opts:["Masern, Mumps, Röteln, Hepatitis B, Tuberkulose, Pertussis, COVID-19","Influenza, Erkältung, Gastritis, Migräne, Dermatitis","Diabetes, Hypertonie, Asthma, Arthritis, Demenz","Nur bei Ausbrüchen in Gemeinschaftseinrichtungen"],c:0},
+  {id:23,tp:"infektion",pt:"Infektionskrankheiten",q:"Wichtige Eigenschaften: Influenza und HIV?",a:"Influenza: Virusinfektion Atemwege, Tröpfcheninfektion, Impfung möglich. HIV: Immunsystem geschwächt, keine Heilung, Therapie möglich, Prävention wichtig.",opts:["Influenza = Virusinfektion/Atemwege/Impfung möglich; HIV = Immunschwäche/keine Heilung","Influenza = Bakterieninfektion, HIV = heilbar mit Antibiotika","Beide durch Tröpfcheninfektion, beide impfbar","Influenza = chronisch, HIV = akut selbstlimitierend"],c:0},
+  {id:24,tp:"infektion",pt:"Infektionskrankheiten",q:"Warum sind Kinder besonders anfällig?",a:"Unreifes Immunsystem, noch kein vollständiger Impfschutz, Gemeinschaftseinrichtungen, globale Mobilität/Migration bringt neue Erreger.",opts:["Unreifes Immunsystem, unvollständiger Impfschutz, Gemeinschaftseinrichtungen","Kinder schlafen mehr","Kinder essen weniger Obst und Gemüse","Kinder haben kleinere Atemwege"],c:0},
+  {id:25,tp:"impfung",pt:"Impfungen",q:"Aktive vs. passive Immunisierung?",a:"Aktiv: Körper bildet SELBST Antikörper → langer Schutz (Masern, Tetanus). Passiv: fertige Antikörper verabreicht → sofortiger aber kurzzeitiger Schutz (Tetanus-Immunglobulin).",opts:["Aktiv = Körper bildet selbst AK (lang); Passiv = fertige AK gegeben (sofort/kurz)","Aktiv = sofortiger Schutz; Passiv = langer Schutz","Aktiv = Totimpfstoff; Passiv = Lebendimpfstoff","Kein Unterschied"],c:0},
+  {id:26,tp:"impfung",pt:"Impfungen",q:"Lebend- vs. Totimpfstoff?",a:"Lebend: abgeschwächte vermehrungsfähige Erreger → starke Immunantwort, NICHT für Immunsupprimierte (Bsp: MMR). Tot: abgetötete Erreger → mehrere Dosen nötig (Bsp: Influenza, Tetanus).",opts:["Lebend = stark/nicht für Immunsupprimierte (MMR); Tot = mehrere Dosen (Tetanus)","Lebend = sicherer; Tot = gefährlicher","Lebend = abgetötete Erreger; Tot = lebende Erreger","Beide gleich"],c:0},
+  {id:27,tp:"impfung",pt:"Impfungen",q:"Was ist Herdenimmunität?",a:"Hohe Impfquote → Krankheit verbreitet sich kaum → schützt auch Ungeimpfte. Besonders wichtig für: Säuglinge, Immunsupprimierte, alte Menschen.",opts:["Hohe Impfquote schützt auch Ungeimpfte (Säuglinge, Immunsupprimierte, Alte)","Nur geimpfte Personen sind geschützt","Schutz der Tierpopulation","Nur relevant bei seltenen Erkrankungen"],c:0},
+  {id:28,tp:"impfung",pt:"Impfungen",q:"Was ist die STIKO?",a:"STIKO = Ständige Impfkommission. Gibt wissenschaftlich fundierte Impfempfehlungen, bewertet Wirksamkeit/Nutzen/Risiken für Deutschland. Grundlage für GKV-Erstattung.",opts:["Ständige Impfkommission — wissenschaftl. Empfehlungen, bewertet Wirksamkeit/Risiken","Staatliche Behörde zur Impfpflicht-Kontrolle","Internationale WHO-Unterorganisation","Stiftung zur Impfkostenübernahme"],c:0},
+  {id:29,tp:"impfung",pt:"Impfungen",q:"Kontraindikationen für Impfungen?",a:"Akute schwere Erkrankung, Fieber >38,5°C, schwere Allergie gegen Impfstoffbestandteile. Immunsuppression: absolut kontraindiziert bei Lebendimpfstoffen!",opts:["Akute schwere Erkrankung, Fieber >38,5°C, schwere Allergie, Immunsuppression (Lebendimpfstoffe)","Erkältung, Müdigkeit, leichtes Fieber","Schwangerschaft grundsätzlich absolute KI","Alter unter 1 Jahr grundsätzlich"],c:0},
+  {id:30,tp:"impfung",pt:"Impfungen",q:"Aufgaben der Pflegekraft bei Impfungen?",a:"Impfstatus prüfen, Aufklärung unterstützen, KI beachten, 15–30 Min. Nachbeobachtung, Impfpassdokumentation, Ängste ernst nehmen und empathisch kommunizieren.",opts:["Impfstatus prüfen, aufklären, KI beachten, 15-30 Min. Nachbeobachtung, Impfpassdoku","Nur Impfstoff aufziehen und injizieren","Eigenständig über Impfung entscheiden","Nur bei Komplikationen eingreifen"],c:0},
+  {id:31,tp:"impfung",pt:"Impfungen",q:"Was sind mRNA-Impfstoffe? Beispiel?",a:"mRNA = Bauanleitung für Antigen → Körper produziert Antigen selbst → Immunreaktion. Innovative Technologie. Beispiel: COVID-19-Impfstoffe.",opts:["mRNA = Bauanleitung → Körper produziert Antigen selbst. Bsp: COVID-19","Enthalten abgeschwächte lebende Viren","Enthalten abgetötete Erreger wie Totimpfstoff","Enthalten fertige Antikörper"],c:0},
+  {id:32,tp:"impfung",pt:"Impfungen",q:"Was regelt das IfSG zu Impfungen?",a:"IfSG regelt: Meldepflichten, Aufklärung/Einwilligung vor Impfungen, Impfpassdokumentation, Masern-Impfpflicht für Kitas und Schulen.",opts:["Meldepflichten, Aufklärung/Einwilligung, Impfpassdoku, Masern-Impfpflicht Kitas/Schulen","Legt Impfpreise für Krankenkassen fest","Verbietet Impfungen ohne Verschreibung","Regelt nur die Finanzierung"],c:0},
+  {id:33,tp:"krampf",pt:"Fieberkrampf",q:"Was ist ein Fieberkrampf? (Definition)",a:"Altersabhängiger epileptischer Anfall unter Fieber (>38°C), OHNE gleichzeitige ZNS-Infektion, OHNE frühere afebrile (fieberfreie) Anfälle.",opts:["Altersabhängiger epilept. Anfall unter Fieber (>38°C), OHNE ZNS-Infektion, OHNE afebrile Anfälle","Fieberbedingter Kreislaufkollaps","Durch Fieber ausgelöste Meningitis","Hypothermie-bedingter Krampfanfall"],c:0},
+  {id:34,tp:"krampf",pt:"Fieberkrampf",q:"Unkomplizierter vs. komplizierter Fieberkrampf?",a:"Unkompliziert (75%): generalisiert, <5 Min., max 1×/24h, Alter 6 Mo–5 J. Kompliziert (25%): fokal, >15 Min., mehrfach/24h, postiktale Lähmung, Alter <6 Mo. oder >5 J.",opts:["Unkompliziert = generalisiert/<5Min./1×/24h/6Mo-5J; Kompliziert = fokal/>15Min./mehrfach","Unkompliziert = fokal/>15Min; Kompliziert = generalisiert","Kein klinischer Unterschied","Unkompliziert = Säuglinge, Kompliziert = Schulkinder"],c:0},
+  {id:35,tp:"krampf",pt:"Fieberkrampf",q:"Prognose beim Fieberkrampf?",a:"Wiederholungsrisiko 30–40%. Bei 95% gute Prognose. KEIN bleibender Entwicklungsschaden. KEIN Übergang in Epilepsie bei unkompliziertem Verlauf.",opts:["Wiederholung 30-40%, 95% gute Prognose, kein Entwicklungsschaden, keine Epilepsie","50% entwickeln Epilepsie","Einmalig, keine Wiederholung","Immer Langzeitbetreuung nötig"],c:0},
+  {id:36,tp:"krampf",pt:"Fieberkrampf",q:"Differentialdiagnosen beim Fieberkrampf?",a:"Nicht-epileptisch: Schüttelfrost, Fieberdelir, febrile Synkopen, Breath-holding-attacks. Weitere: Meningitis, Enzephalitis, Intoxikation, Epilepsie.",opts:["Schüttelfrost, Fieberdelir, Synkopen, Meningitis/Enzephalitis, Intoxikation, Epilepsie","Nur Meningitis relevant","Nur Hypoglykämie","Appendizitis und Otitis media"],c:0},
+  {id:37,tp:"krampf",pt:"Fieberkrampf",q:"Wann Lumbalpunktion beim Fieberkrampf?",a:"LP bei: Säuglinge <12 Mo., kompliziertem Verlauf, ungenügend Geimpfte, antibiotisch vorbehandelt, Meningitis-Verdacht, verzögerte Reorientierung.",opts:["Bei <12 Mo., kompliziertem Verlauf, ungenügend Geimpften, Meningitis-V.A.","Bei jedem Fieberkrampf routinemäßig","Nur bei Bewusstlosigkeit","Niemals bei Kindern"],c:0},
+  {id:38,tp:"krampf",pt:"Fieberkrampf",q:"Akuttherapie beim Fieberkrampf?",a:"Ruhe bewahren! Eltern beruhigen. Vitalzeichen monitoren. Bei Dauer >3–5 Min.: DIAZEPAM REKTAL oder MIDAZOLAM BUCCAL. Ggf. weitere Antikonvulsiva. Antipyrese.",opts:["Ruhe/Eltern beruhigen; bei >3-5 Min.: Diazepam rektal ODER Midazolam buccal + Antipyrese","Sofort Krankenwagen, keine eigenen Maßnahmen","Kaltes Wasser über den Körper","Kind physisch fixieren"],c:0},
+  {id:39,tp:"krampf",pt:"Fieberkrampf",q:"Wann stationäre Aufnahme bei Fieberkrampf?",a:"Stationäre Aufnahme bei: erstem Fieberkrampf, kompliziertem Verlauf, Krampfanfall unklarer Genese.",opts:["Bei erstem Fieberkrampf, kompliziertem Verlauf, unklarer Genese","Nur bei Krampf >30 Min.","Niemals — immer ambulant","Nur auf Elternwunsch"],c:0},
+
+  // ── MISSING QUESTIONS (40–52) ──────────────────────────────────────────
+  {id:40,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Wie funktioniert die Thermoregulation? (Körperkern & Körperschale)",a:"Körperkern = Kopf & Rumpf. Körperschale umgibt den Kern (kann stark auskühlen). Hypothalamus = Wärmeregulationszentrum, Soll-Wert 37°C. Thermorezeptoren messen IST-Wert → Nervenfasern leiten Info zum Hypothalamus → Vergleich Soll/IST.",opts:["Hypothalamus vergleicht Soll/IST-Wert; Körperkern = Kopf & Rumpf; Körperschale kann auskühlen","Hypothalamus ist nicht an der Thermoregulation beteiligt","Körperschale = Kopf & Rumpf; Körperkern = Extremitäten","Wärmeregulation erfolgt ausschließlich über die Haut"],c:0},
+
+  {id:41,tp:"fieber",pt:"Fieber & Thermoregulation",q:"Wie erzeugen Neugeborene & Säuglinge Wärme? (Besonderheit)",a:"Neugeborene & Säuglinge haben KEIN Kältezittern! Sie verbrennen stattdessen braunes Fettgewebe zur Wärmeproduktion.",opts:["Verbrennen braunes Fettgewebe — kein Kältezittern möglich","Zittern wie Erwachsene, nur schwächer","Ausschließlich durch erhöhte Nahrungsaufnahme","Durch vermehrte Bewegung der Extremitäten"],c:0},
+
+  {id:42,tp:"infektion",pt:"Infektionskrankheiten",q:"Welche Übertragungswege für Infektionskrankheiten gibt es?",a:"Tröpfcheninfektion, Schmierinfektion, Kontaktinfektion, Blutübertragung, Lebensmittel, sexuelle Übertragung.",opts:["Tröpfchen, Schmier-, Kontaktinfektion, Blut, Lebensmittel, sexuelle Übertragung","Nur Tröpfchen und Kontaktinfektion","Ausschließlich direkter Körperkontakt","Nur Blut und Sexualkontakt"],c:0},
+
+  {id:43,tp:"infektion",pt:"Infektionskrankheiten",q:"Was gehört zur Basishygiene in der Pflege?",a:"Händedesinfektion, Handschuhe, Schutzkleidung, Flächendesinfektion, korrekte Entsorgung von Abfällen.",opts:["Händedesinfektion, Handschuhe, Schutzkleidung, Flächendesinfektion, korrekte Entsorgung","Nur Händewaschen mit Seife","Nur bei sichtbarer Verschmutzung nötig","Ausschließlich bei infektiösen Patienten"],c:0},
+
+  {id:44,tp:"infektion",pt:"Infektionskrankheiten",q:"Welche Isolationsformen gibt es?",a:"Kontaktisolierung, Tröpfchenisolierung. Ggf. Einzelzimmer erforderlich. Ziel: Unterbrechung der Infektionskette.",opts:["Kontaktisolierung und Tröpfchenisolierung (ggf. Einzelzimmer)","Nur Vollabschirmung in Druckräumen","Isolierung nur bei Tuberkulose nötig","Isolierung = grundsätzlich Einzelzimmer mit Schleuse"],c:0},
+
+  {id:45,tp:"infektion",pt:"Infektionskrankheiten",q:"Nenne wichtige Eigenschaften von Norovirus und Masern.",a:"Norovirus: hoch ansteckende Magen-Darm-Infektion, Symptome: Durchfall & Erbrechen, Isolation wichtig. Masern: hoch ansteckende Virusinfektion, meldepflichtig, Impfpflicht in Deutschland.",opts:["Norovirus = Magen-Darm/Isolation wichtig; Masern = hoch ansteckend/meldepflichtig/Impfpflicht","Beide durch Tröpfchen, beide heilbar mit Antibiotika","Norovirus = Atemwegserkrankung; Masern = Hautpilz","Beide nicht meldepflichtig"],c:0},
+
+  {id:46,tp:"infektion",pt:"Infektionskrankheiten",q:"Nenne alle wichtigen Immunzellen und ihre Funktionen.",a:"B-Lymphozyten: Antikörper. T-Helferzellen: koordinieren Immunsystem. T-Killer: zerstören infizierte Zellen. T-Regulatorzellen: verhindern Überreaktionen. NK-Zellen: töten ohne Voraktivierung. Neutrophile: häufigste, fressen Bakterien. Makrophagen: Fresszellen, starten Immunreaktion.",opts:["B-Lymphozyten=AK, T-Helfer=koordinieren, T-Killer=zerstören, NK=ohne Voraktivierung, Neutrophile=Bakterien fressen","Alle Immunzellen produzieren ausschließlich Antikörper","Nur T-Zellen sind für die Immunabwehr zuständig","B-Zellen koordinieren, T-Zellen produzieren Antikörper"],c:0},
+
+  {id:47,tp:"impfung",pt:"Impfungen",q:"Was ist der Unterschied zwischen Grundimmunisierung und Auffrischimpfung?",a:"Grundimmunisierung: Reihe von Impfungen zum Aufbau eines vollständigen Erstschutzes, meist im Kindesalter. Auffrischimpfung: Antikörper nehmen mit Zeit ab → Auffrischung reaktiviert Gedächtniszellen → langfristiger Schutz.",opts:["Grundimmunisierung = Erstschutz im Kindesalter; Auffrischimpfung = reaktiviert Gedächtniszellen","Grundimmunisierung = einmalige Impfung; Auffrischung = bei Krankheit","Kein Unterschied — beide gleich wirksam","Grundimmunisierung nur für Erwachsene"],c:0},
+
+  {id:48,tp:"impfung",pt:"Impfungen",q:"Normale Impfreaktionen vs. seltene Komplikationen?",a:"Normale Reaktionen: Rötung, Schwellung, leichtes Fieber — diese sind ERWARTET und harmlos. Seltene Komplikationen: allergische Reaktion, anaphylaktischer Schock → deshalb 15–30 Min. Nachbeobachtung!",opts:["Normal: Rötung/Schwellung/Fieber; Selten: Allergie, anaphylaktischer Schock → Nachbeobachtung!","Alle Reaktionen sind gefährlich und müssen behandelt werden","Keine Reaktionen = Impfstoff unwirksam","Fieber nach Impfung = immer Komplikation"],c:0},
+
+  {id:49,tp:"impfung",pt:"Impfungen",q:"Welche Standardimpfungen empfiehlt die STIKO?",a:"Säuglingsalter: Tetanus, Diphtherie, Pertussis, Polio, Masern, Hepatitis B, Pneumokokken, Rotaviren. Jugendalter: HPV (ab 9 Jahren). Jährlich für Risikogruppen: Influenza.",opts:["Säuglinge: Tetanus/Diphtherie/Pertussis/Polio/Masern/Hep B; Jugend: HPV; Jährlich: Influenza","Nur Masern und Tetanus sind empfohlen","Impfungen ab 18 Jahren, vorher nicht nötig","Alle Impfungen nur für Risikogruppen"],c:0},
+
+  {id:50,tp:"impfung",pt:"Impfungen",q:"Was bedeutet Meldepflicht und warum ist sie wichtig?",a:"Bestimmte Infektionskrankheiten müssen nach dem IfSG gemeldet werden. Wichtig für: Nachverfolgung, epidemiologische Kontrolle, Schutz der öffentlichen Gesundheit, Ausbruchsmanagement und Prävention.",opts:["Gesetzliche Meldepflicht nach IfSG — wichtig für Nachverfolgung, Kontrolle, Ausbruchsmanagement","Freiwillige Meldung ohne gesetzliche Grundlage","Nur Krankenhäuser müssen melden, nicht Arztpraxen","Meldepflicht gilt nur bei mehr als 10 Erkrankten"],c:0},
+
+  {id:51,tp:"impfung",pt:"Impfungen",q:"Was gehört zur pflegerischen Betreuung bei Infektionskrankheiten im Kindesalter?",a:"Fiebermanagement (Messung, Maßnahmen, Doku), ausreichende Flüssigkeitszufuhr, Hygienemaßnahmen & Isolation, symptomatische Behandlung (Antipyretika, Antibiotika wenn indiziert), Elternberatung, frühzeitige Diagnostik (Abstrich, Blutbild, PCR).",opts:["Fiebermanagement, Flüssigkeit, Hygiene/Isolation, Antipyretika, Elternberatung, Diagnostik","Nur Fieber messen und dokumentieren","Kind isolieren und Eltern nach Hause schicken","Ausschließlich Antibiotika verabreichen"],c:0},
+
+  {id:52,tp:"krampf",pt:"Fieberkrampf",q:"Was wird in der Anamnese beim Fieberkrampf erfragt?",a:"Erstes oder wiederholtes Ereignis? Ablauf (motorisch/nicht-motorisch)? Dauer? Spontanes Sistieren? Begleitsymptome (Zungenbiss, Einnässen)? Postiktal: Sprachstörung, Parese? Infektzeichen? Fieberverlauf? Familienanamnese (Epilepsie)? Vorerkrankungen? Medikamente/Drogen?",opts:["Erstes/Wiederholung, Ablauf, Dauer, Begleitsymptome, postiktal, Infektzeichen, Familienanamnese","Nur Fieberhöhe und Dauer des Krampfes","Ausschließlich Medikamentenanamnese","Nur Alter und Gewicht des Kindes"],c:0},
+];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+const S={
+  mode:'all',topic:null,queue:[],cur:0,
+  correct:0,wrong:0,streak:0,best:0,answered:false,
+  weak:JSON.parse(localStorage.getItem('wk')||'[]')
+};
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+
+function showScreen(id){
+  ['start-screen','quiz-screen','summary'].forEach(s=>{
+    const el=$(s);
+    el.style.display='none';
+    el.classList.remove('screen-active');
+  });
+  const el=$(id);
+  el.style.display='block';
+  el.classList.add('screen-active');
+}
+
+// ── SELECTIONS ─────────────────────────────────────────────────────────────
+function selMode(m){
+  S.mode=m;
+  ['all','shuffle','weak','topic'].forEach(k=>$('m-'+k).classList.toggle('sel',k===m));
+  $('topic-pick').style.display=m==='topic'?'block':'none';
+}
+
+function selTopic(t){
+  S.topic=t;
+  ['fieber','infektion','impfung','krampf'].forEach(k=>$('t-'+k).classList.toggle('sel',k===t));
+}
+
+// ── START ──────────────────────────────────────────────────────────────────
+function startQuiz(){
+  let q;
+  if(S.mode==='all')      q=[...QS];
+  else if(S.mode==='shuffle') q=[...QS].sort(()=>Math.random()-.5);
+  else if(S.mode==='weak'){
+    q=QS.filter(x=>S.weak.includes(x.id));
+    if(!q.length)q=[...QS].sort(()=>Math.random()-.5);
+  }else{
+    q=QS.filter(x=>x.tp===S.topic);
+    if(!q.length)q=[...QS];
+  }
+  Object.assign(S,{queue:q,cur:0,correct:0,wrong:0,streak:0,best:0,answered:false});
+  showScreen('quiz-screen');
+  renderQ();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────────────
+function renderQ(){
+  if(S.cur>=S.queue.length){endQuiz();return;}
+  const q=S.queue[S.cur];
+  S.answered=false;
+
+  const pct=Math.round((S.cur/S.queue.length)*100);
+  $('prog-txt').textContent=`Frage ${S.cur+1} von ${S.queue.length}`;
+  $('prog-pct').textContent=pct+'%';
+  $('prog-bar').style.width=pct+'%';
+  $('sc').textContent=S.correct;
+  $('sw').textContent=S.wrong;
+  $('ss').textContent=S.streak+'🔥';
+  $('qnum').textContent=`Frage ${q.id} · ${q.pt}`;
+  $('qtxt').textContent=q.q;
+
+  // Shuffle answer indices
+  const idxs=[0,1,2,3].sort(()=>Math.random()-.5);
+  const letters=['A','B','C','D'];
+  const wrap=$('opts');
+  wrap.innerHTML='';
+
+  idxs.forEach((orig,pos)=>{
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='opt';
+    btn.innerHTML=`<span class="opt-letter">${letters[pos]}</span>${q.opts[orig]}`;
+    btn.dataset.iscorrect=(orig===q.c)?'1':'0';
+
+    // Dual event listeners — touchend for iOS, click as fallback
+    let fired=false;
+    btn.addEventListener('touchend',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      if(!fired&&!S.answered){fired=true;choose(btn,orig===q.c,q);}
+    },{passive:false,capture:false});
+    btn.addEventListener('click',function(e){
+      if(!fired&&!S.answered){fired=true;choose(btn,orig===q.c,q);}
+    });
+
+    wrap.appendChild(btn);
+  });
+
+  // Reset feedback
+  const fb=$('fb');
+  fb.className='feedback';
+  $('fbanswer').style.display='none';
+  $('confwrap').className='conf-wrap';
+
+  // Fade card in
+  const card=$('qcard');
+  card.style.opacity='0';card.style.transform='translateY(10px)';
+  requestAnimationFrame(()=>{
+    card.style.transition='opacity .25s,transform .25s';
+    card.style.opacity='1';card.style.transform='none';
+  });
+}
+
+// ── CHOOSE ─────────────────────────────────────────────────────────────────
+function choose(btn,correct,q){
+  if(S.answered)return;
+  S.answered=true;
+
+  // Lock all buttons
+  document.querySelectorAll('.opt').forEach(b=>{
+    b.style.pointerEvents='none';
+    b.style.touchAction='none';
+  });
+
+  // Color chosen
+  btn.classList.add(correct?'correct':'wrong');
+
+  // Show correct answer
+  document.querySelectorAll('.opt').forEach(b=>{
+    if(b.dataset.iscorrect==='1')
+      b.classList.add(correct?'correct':'reveal');
+  });
+
+  // Stats
+  if(correct){
+    S.correct++;S.streak++;
+    if(S.streak>S.best)S.best=S.streak;
+  }else{
+    S.wrong++;S.streak=0;
+    if(!S.weak.includes(q.id)){S.weak.push(q.id);localStorage.setItem('wk',JSON.stringify(S.weak));}
+  }
+  $('sc').textContent=S.correct;
+  $('sw').textContent=S.wrong;
+  $('ss').textContent=S.streak+'🔥';
+
+  // Feedback
+  const fb=$('fb');
+  fb.className='feedback show '+(correct?'good':'bad');
+  $('fbtitle').textContent=correct?'✓ Richtig!':'✗ Leider falsch';
+  $('fbbody').textContent=correct
+    ?'Super! Diesen Punkt hast du im Griff.'
+    :'Nicht schlimm — lies die richtige Antwort und weiter!';
+  $('fbanswer').style.display='block';
+  $('fbatxt').textContent=q.a;
+  $('confwrap').className='conf-wrap show';
+
+  // Scroll to feedback
+  setTimeout(()=>fb.scrollIntoView({behavior:'smooth',block:'nearest'}),120);
+}
+
+// ── NEXT ────────────────────────────────────────────────────────────────────
+function nxt(conf){
+  const q=S.queue[S.cur];
+  if(conf==='hard'){S.queue.push(q);}
+  else if(conf==='easy'){S.weak=S.weak.filter(i=>i!==q.id);localStorage.setItem('wk',JSON.stringify(S.weak));}
+  S.cur++;renderQ();
+}
+function skip(){S.cur++;renderQ();}
+
+// ── END ──────────────────────────────────────────────────────────────────
+function endQuiz(){
+  showScreen('summary');
+  const tot=S.correct+S.wrong;
+  const pct=tot>0?Math.round((S.correct/tot)*100):0;
+  $('rpct').textContent=pct+'%';
+  $('rc').textContent=S.correct;
+  $('rw').textContent=S.wrong;
+  $('rt').textContent=tot;
+  $('rb').textContent=S.best+'🔥';
+  setTimeout(()=>{
+    const c=$('ringc');
+    c.style.transition='stroke-dashoffset 1s ease';
+    c.style.strokeDashoffset=339.3-(pct/100)*339.3;
+  },200);
+  const msgs=[
+    [90,'Ausgezeichnet! 🏆','Du bist bereit für die Klausur!'],
+    [70,'Sehr gut! 🎓','Noch etwas üben und du schaffst es!'],
+    [50,'Gut gemacht! 📖','Schwache Fragen nochmal wiederholen.'],
+    [0,'Weiter üben! 💪','Wiederholen macht den Meister!']
+  ];
+  const [,t,m]=msgs.find(([thr])=>pct>=thr);
+  $('stitle').textContent=t;
+  $('smsg').textContent=m;
+}
+function rall(){showScreen('start-screen');}
+function rweak(){S.mode='weak';startQuiz();}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+showScreen('start-screen');
+</script>
+</body>
+</html>
